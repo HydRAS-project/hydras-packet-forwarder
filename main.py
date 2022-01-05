@@ -3,6 +3,7 @@
 from queue import Queue
 from threading import Thread
 import socket
+import time
 
 HOST = '192.168.0.7'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
@@ -21,16 +22,16 @@ def forwarder_server_socket_receive(c2s_q, s2c_q):
             with conn:
                 print('Connected by', addr)
                 while True:
-                    print(s2c_q.empty())
                     try:
                         if (not s2c_q.empty()):
                             data_s = s2c_q.get()
                             print('Replying: ' + data_s.decode("utf-8"))
-                            s.sendall(data_s)
+                            conn.sendall(data_s)
                         data = conn.recv(1024)
-                        if data:    
+                        if data:
                             print('Forwarding: ' + data.decode("utf-8"))
                             c2s_q.put(data)
+                        time.sleep(0.5)
                     except Exception as e:
                         print(e)
                         break
@@ -54,6 +55,7 @@ def forwarder_socket_send(c2s_q, s2c_q):
                         if response:
                             print('Received: ' + response.decode("utf-8"))
                             s2c_q.put(response)
+                        time.sleep(0.5)
                     except Exception as e:
                             print(e)
                             break                
